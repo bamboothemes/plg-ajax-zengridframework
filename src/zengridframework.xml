@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="3.0" type="plugin" group="ajax" method="upgrade">
+        <name>plg_ajax_zengridframework</name>
+        <author>Anthony Olsen</author>
+	   <creationDate>2015</creationDate>
+        <copyright>Joomlabamboo</copyright>
+        <license>GNU General Public License</license>
+        <authorEmail>design@joomlabamboo.com</authorEmail>
+        <authorUrl>www.joomlabamboo.com</authorUrl>
+        <version>1.0</version>
+        <description>An ajax helper plugin for the Zen Grid Framework based themes.</description>
+        <files>
+                <filename plugin="zengridframework">zengridframework.php</filename>
+                <filename>index.html</filename>
+        </files>        
+</extension>
