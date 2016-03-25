@@ -1,11 +1,11 @@
 <?php
 /**
- * @package     ##package##
- * @subpackage  ##subpackage##
- * @author      ##author##
- * @copyright   ##copyright##
- * @license     ##license##
- * @version     ##version##
+ * @package     Joomla.Plugin
+ * @subpackage  Ajax.Zengridframework
+ * @author      Joomla Bamboo - design@joomlabamboo.com
+ * @copyright   Copyright (c) 2016 Joomla Bamboo. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @version     1.0
  */
  
 // no direct access
@@ -57,16 +57,83 @@ class plgAjaxZengridframework extends JPlugin
 	 		
        private function save($data, $id, $target, $template, $name) {
   
-			$content = json_encode($data, JSON_PRETTY_PRINT);
-       		$path = JPATH_ROOT .'/templates/'.$template.'/settings/'.$target.'/';
-       		
-       		if($target =="config") {
-       			$name = 'config-'.$id;
-       		}
-       		$fileName = $path . $name . '.json';
- 
-       		JFile::write($fileName, $content);
+  			echo 'save - ' . $target;
+			$content = json_encode($data);
+				$content = self::indent($content);
+				
+			//	print_r($content);
+			//$content = json_encode($data, JSON_PRETTY_PRINT);
+			$path = JPATH_ROOT .'/templates/'.$template.'/settings/'.$target.'/';
+				
+				if($target =="config") {
+					$name = 'config-'.$id;
+				}
+				$fileName = $path . $name . '.json';
+				
+				
+				JFile::write($fileName, $content);
+			
        }
+       
+       
+       /**
+        * Indents a flat JSON string to make it more human-readable.
+        *
+        * @param string $json The original JSON string to process.
+        *
+        * @return string Indented version of the original JSON string.
+        */
+       function indent($json) {
+       
+           $result      = '';
+           $pos         = 0;
+           $strLen      = strlen($json);
+           $indentStr   = '  ';
+           $newLine     = "\n";
+           $prevChar    = '';
+           $outOfQuotes = true;
+       
+           for ($i=0; $i<=$strLen; $i++) {
+       
+               // Grab the next character in the string.
+               $char = substr($json, $i, 1);
+       
+               // Are we inside a quoted string?
+               if ($char == '"' && $prevChar != '\\') {
+                   $outOfQuotes = !$outOfQuotes;
+       
+               // If this character is the end of an element,
+               // output a new line and indent the next line.
+               } else if(($char == '}' || $char == ']') && $outOfQuotes) {
+                   $result .= $newLine;
+                   $pos --;
+                   for ($j=0; $j<$pos; $j++) {
+                       $result .= $indentStr;
+                   }
+               }
+       
+               // Add the character to the result string.
+               $result .= $char;
+       
+               // If the last character was the beginning of an element,
+               // output a new line and indent the next line.
+               if (($char == ',' || $char == '{' || $char == '[') && $outOfQuotes) {
+                   $result .= $newLine;
+                   if ($char == '{' || $char == '[') {
+                       $pos ++;
+                   }
+       
+                   for ($j = 0; $j < $pos; $j++) {
+                       $result .= $indentStr;
+                   }
+               }
+       
+               $prevChar = $char;
+           }
+       
+           return $result;
+       }
+       
        
        
        /**
@@ -123,6 +190,9 @@ class plgAjaxZengridframework extends JPlugin
     		 	
     		 	// Files from Assets.xml
     		 	$layout = $_POST['layout'];
+    		 	$positions = $_POST['content'];
+    		 	$positions = explode('.', $positions);
+    		 	$positions = $positions[0];
     		 	
     		 	// Get Theme blocks
     		 	// We may be dending a name of a layout to retrieve or sending the data from a config file.
@@ -138,107 +208,58 @@ class plgAjaxZengridframework extends JPlugin
     		 	if(file_exists(TEMPLATE_PATH . 'custom/positions.json')) {
     		 		$default_layout = $zgf->get_json('custom/positions.json');
     		 	} else {
-    		 		$default_layout = $zgf->get_json('settings/layouts/positions.json');
+    		 		$default_layout = $zgf->get_json('settings/positions.json');
     		 	}
     		 	
+    	
     		 	foreach ($default_layout as $key => $row) { 
     		 		
-    		 		if($key !=="main") {
-    		 			echo '<div id="'.$key.'" data-row="'.$key.'" class="module-row">';
-    		 			echo '<div class="row-title"><span>'.$key.'</span>'.
-    		 			'<div class="stack-position">'.
-    		 			'<div><span class="icon-desktop"></span>'.
-    		 			'<a class="stack-positions" id="hidden-desktop" href="#">Hide</a></div>'. 
-    		 			'<div><span class="icon-tablet"></span>'.
-    		 			'<a class="stack-positions" id="stack-tablets" href="#">Stack</a>'.
-    		 			'<a class="stack-positions" id="hidden-tablets" href="#">Hide</a>'.
-    		 			'<a class="stack-positions" id="no-change-phones" href="#">No Change</a></div>'.
-    		 			'<div><span class="icon-mobile"></span>'.
-    		 			'<a href="#" class="stack-positions" id="stack-phones">Stack</a>'.
-    		 			'<a href="#" class="stack-positions" id="hidden-phones">Hide</a>'.
-    		 			'<a class="stack-positions" id="no-change-phones" href="#">No Change</a>'.
-    		 			'</div></div></div>';
     		 			
-    		 			foreach ($row as $title => $width) {
-    		 				
-    		 				if(isset($theme_layout->$key->{'positions'}->{$title})) {
-    		 					$width = $theme_layout->$key->{'positions'}->{$title};
+    		 			echo '<div id="'.$key.'-row" data-row="'.$key.'-row" class="resize-row module-row connectedSortable">';
+    		 			echo '<span class="uk-badge">'.$key.'</span>';
+    		 			echo '<div class="edit-row '.$key.'_edit-row">
+    		 			<span class="icon-pencil"></span></div>';
+    		 			
+    		 			// Used positions
+	 					$layout = 	(array)$theme_layout->$key->positions;
+	 					unset($layout['null']);
+	 						
+	 					// Default main positions
+	 					$default = (array)$default_layout->$key;
+	 					$diff = array_diff_key($default,$layout);
+	 					
+	 					// Items used
+	 					foreach ($layout as $title => $width) {
+	 					
+	 						echo '<div id="'.$title.'" class="resizable ui-widget-content grid-'.$width.'" data-width="'.$width.'" data-active="0" style="display:nosne">';
+	 						echo '<h3 class="ui-widget-header">';
+	 						echo '<span class="icon-eye"></span>';
+	 						echo '<span class="col-count"></span>'.ucfirst($title).' </h3>';
+	 						echo '</div>';
+	 						
+	 						echo '<script>';
+	 						echo 'jQuery(document).ready(function($) {';
+	 						echo '$(".unused-modules [data-id=\"'.$title.'\"]").hide();';
+	 						echo '});</script>';
+	 					}
+	 					
+	 					// Items in the positions.json
+	 					foreach ($diff as $title => $width) {
+	 				
+    		 				if(isset($layout->{$title})) {
+    		 					$width = $layout->{$title};
     		 				}
-    		 				
-    		 				echo '<div id="'.$title.'" class="resizable ui-widget-content grid-'.$width.'" data-width="'.$width.'" style="display:none" data-active="0">';
+		 				
+    		 				echo '<div id="'.$title.'" class="resizable ui-widget-content grid-'.$width.'" data-width="'.$width.'" data-active="0" style="display:none">';
     		 				echo '<h3 class="ui-widget-header">';
     		 				echo '<span class="icon-eye"></span>';
     		 				echo '<span class="col-count"></span>'.ucfirst($title).' </h3>';
     		 				echo '</div>';
-    		 				
-    		 			}
+	 					}
     		 			
-    		 			echo '</div>';
-    		 			echo '<div data-id="'.$key.'" class="unused-modules has-content"><span class="icon-eye cancel"></span>';
-    		 				
-    		 				foreach ($row as $title => $width) {
-    		 					echo '<div data-id="'.$title.'" style="display:block">'.ucfirst($title).'</div>';
-    		 				}
-    		 				
-    		 			echo '</div>';	
-    		 		}
+    		 		echo '</div>';
+    		 			
     		 		
-    		 		else {
-    		 			
-    		 			echo '<div id="'.$key.'" data-row="'.$key.'" class="module-row">';
-    		 				echo '<div class="row-title"><span>'.$key.'</span><a class="main-content-toggle" href="#main-left-right" id="maincontent_sidebar1_sidebar2">Main Left Right</a> / <a class="main-content-toggle" href="#left-main-right" id="sidebar1_maincontent_sidebar2">Left Main Right</a> / <a class="main-content-toggle" href="#left-right-main" id="sidebar1_sidebar2_maincontent">Left Right Main</a>'.
-    		 				'<div class="stack-position">'.
-    		 				'<div><span class="icon-desktop"></span>'.
-    		 				'<a class="stack-positions" id="hidden-desktop" href="#">Hide</a></div>'. 
-    		 				'<div><span class="icon-tablet"></span>'.
-    		 				'<a class="stack-positions" id="stack-tablets" href="#">Stack</a>'.
-    		 				'<a class="stack-positions" id="hidden-tablets" href="#">Hide</a>'.
-    		 				'<a class="stack-positions" id="no-change-tablets" href="#">No Change</a></div>'.
-    		 				'<div><span class="icon-mobile"></span>'.
-    		 				'<a href="#" class="stack-positions" id="stack-phones">Stack</a>'.
-    		 				'<a href="#" class="stack-positions" id="hidden-phones">Hide</a>'.
-    		 				'<a class="stack-positions" id="no-change-phones" href="#">No Change</a>'.
-    		 				'</div></div></div>';
-    		 				
-    		 				// Default main positions
-    		 				$default_main = (array)$default_layout->main;
-    		 				
-    		 				// Used positions
-    		 				$mainlayout = 	(array)$theme_layout->main->positions;
-    		 				
-    		 				// Get any iotems not used but should be in array
-    		 				// Items in this will be nulled and in the hidden row.
-    		 				$diff = array_diff_key($default_main,$mainlayout);
-    		 				
-    		 				
-    		 				foreach ($mainlayout as $title => $width) {
-    		 					echo '<div id="'.$title.'" class="resizable ui-widget-content grid-'.$width.'" data-width="'.$width.'">';
-    		 					echo '<h3 class="ui-widget-header">';
-    		 					echo '<span class="icon-eye"></span>';
-    		 					echo '<span class="col-count"></span>'.ucfirst($title).' </h3>';
-    		 					echo '</div>';
-    		 				}
-    		 				
-    		 				foreach ($diff as $title => $width) {
-    		 					echo '<div id="'.$title.'" class="resizable ui-widget-content grid-'.$width.' hidden" data-width="'.$width.'">';
-    		 					echo '<h3 class="ui-widget-header">';
-    		 					echo '<span class="icon-eye"></span>';
-    		 					echo '<span class="col-count"></span>'.ucfirst($title).' </h3>';
-    		 					echo '</div>';
-    		 				}
-    		 				
-    		 				echo '</div>';
-    		 			
-    		 				
-    		 				echo '<div data-id="'.$key.'" class="unused-modules has-content"><span class="icon-eye cancel"></span>';
-    		 					
-    		 					foreach ($row as $title => $width) {
-    		 						echo '<div data-id="'.$title.'">'.ucfirst($title).'</div>';
-    		 					}
-    		 					
-    		 				echo '</div>';
-    		 				
-    		 		}
     		 	} 
     		 	
     		 	ob_start(); ?>
@@ -247,7 +268,9 @@ class plgAjaxZengridframework extends JPlugin
     		 	<script>
     		 		
     		 		jQuery(document).ready(function($) {
-    		 
+    		 			
+    		 			
+    		 			
     		 			<?php // Loads the layout on first page laod
     		 				foreach ($theme_layout as $key => $row) { 
     		 		
@@ -264,27 +287,12 @@ class plgAjaxZengridframework extends JPlugin
     		 				// Get positions
     		 				$positions= $row->positions;
     		 				if(is_object($positions)) {
-    		 				
-    		 			
-    		 				foreach ($positions as $module => $item) { ?>		
-    		 					$("#resize-container #<?php echo $module;?>").attr("data-active", "1").show();
-    		 					$("#resize-container .unused-modules [data-id='<?php echo $module;?>']").hide();
-    		 				<?php } ?>
-    		 				
-    		 				var unused_modules = $('[data-id="<?php echo $key;?>"].unused-modules div:visible').length;
-    		 				
-    		 				if(unused_modules > 0) {
-    		 					$('[data-id="<?php echo $key;?>"].unused-modules').addClass('has-content');
-    		 				} else {
-    		 					$('[data-id="<?php echo $key;?>"].unused-modules').removeClass('has-content');
-    		 				}
-    		 				
-    		 				
-    		 				<?php } ?>
-    		 				
-    		 				
-    		 					
-    		 		<?php } ?>
+	    		 				foreach ($positions as $module => $item) { ?>		
+	    		 					$("#resize-container [data-row='<?php echo $key;?>-row'] #<?php echo $module;?>").attr("data-active", "1").show();
+	    		 					$("#resize-container .unused-modules [data-id='<?php echo $module;?>']").hide();
+	    		 				<?php }
+    		 			 	} 
+    		 			} ?>
     		 		
     		 		});
     		 	</script>
@@ -301,23 +309,62 @@ class plgAjaxZengridframework extends JPlugin
         private function compile($content, $id, $target,$template, $name) {
 	      
 		      	// Variables and Settings
+		      	
+		      	include FRAMEWORK_PATH . '/helpers/helper.php'; 
+		      		
+		      	// Instantiate $zgf
+		      	$zgf = new zen();
+		      		
+		      		
 		      	 	$variables = $content['colors'];
 		      	 	$settings = $content['settings'];
 		      	 	$extra_files = $content['files'];
-		      	 	$framework_version = $settings['framework_version'];
-		      	 	$framework_enable = $settings['framework_enable'];
-		      	 	$framework_files = $settings['framework_files'];
-		      		$enable_template_css = $settings['template_css'];
+		      	 	$framework_version = null;
+		      	 	$framework_enable = null;
+		      	 	$framework_files = "";
+		      	 	$enable_template_css = 0;
+		      	 	$compressed = 0;
+		      	 	$animate = 0;
+		      	 	$animations = "";
+		      	 	
+	
+		      	 
+		      	 	if(isset($settings['framework_version'])) {
+		      	 		$framework_version = $settings['framework_version'];
+		      	 	}
+		      	 	
+		      	 	if(isset($settings['framework_enable'])) {
+		      	 		$framework_enable = $settings['framework_enable'];
+		      	 	} 
+		      	 	
+		      	 	if(isset($extra_files['framework_files'])) {
+		      	 		$framework_files = $extra_files['framework_files'];
+		      	 	}
+		      	 	
+		      	 	if(isset($settings['template_css'])) {
+		      	 		$enable_template_css = $settings['template_css'];
+		      	 	}
+		      	 	
+		      	 	
+		      	 	if(isset($settings['compresscss'])) {
+		      	 		$compressed = $settings['compresscss'];
+		      	 	}
+		      	 	
+		      	 	if(isset($settings['animate'])) {
+		      	 		$animate = $settings['animate'];
+		      	 	}
+		      	 	
+		      	 	if(isset($extra_files['animations'])) {
+		      	 		$animations = $extra_files['animations'];
+		      	 	}
+		      	 	
+		      	 	
+		      		
 		      		$theme = $settings['theme'];
 		      		$theme = strtolower(str_replace(' ', '-', $theme));
 		      		$fontawesome_type = $settings['font_awesome_type'];
 		      		$addtocompiler = $extra_files['custom_less'];
-		      		$compressed = $settings['compresscss'];
-		      		$animate = $settings['animate'];
-		      		$animations = $extra_files['animations'];
-		      		$rowstyles = $extra_files['rowstyles'];
-		      	
-		      	    		
+		      		
 		      		
 		      		/**
 		      		 * Import LESS PHP
@@ -358,7 +405,10 @@ class plgAjaxZengridframework extends JPlugin
 		      				}
 		      			}
 		      			
+		      		
+		      			      			
 		      			
+		      				
 		      		
 		      		// Only parse the admin settings if not creating css
 		      		if(!$enable_template_css) {
@@ -374,7 +424,7 @@ class plgAjaxZengridframework extends JPlugin
 		      	
 		      			// Process Colour Variables
 		      			foreach ($variables as $param =>$color) {
-		      				
+		      			
 		      				
 		      					if($color !=="") {
 		      						// First three letters
@@ -400,16 +450,22 @@ class plgAjaxZengridframework extends JPlugin
 		      									// We can lighten # or variables so need to readd # if its a hex
 		      									$variable = explode('(', $color);
 		      									
-		      									// Check for first letter of variable we are looking at
-		      									$firstletter = substr($variable[1], 0, 1);
-		      									
-		      									// If its a variable just do the normal process
-		      									if($firstletter == '@') {
-		      										$color = $variable[0].'('.$variable[1];
-		      									} else {
-		      										//other wise it must be a colour so we add back the #
-		      										$color = $variable[0].'(#'.$variable[1];
-		      									}
+		      									if(isset($variable[1])) {
+			      									// Check for first letter of variable we are looking at
+			      									$firstletter = substr($variable[1], 0, 1);
+			      									
+			      									// If its a variable just do the normal process
+			      									if($firstletter == '@') {
+			      										$color = $variable[0].'('.$variable[1];
+			      									} else {
+			      										//other wise it must be a colour so we add back the #
+			      										$color = $variable[0].'(#'.$variable[1];
+			      									}
+			      								} else {
+			      									print_r($variable[0]);
+			      								}
+		      								} else if($firstletter == "l") {
+		      									$color = "transparent";
 		      								}
 		      							
 		      							} elseif($threeletters =="dar" || $threeletters =="aut") {
@@ -432,7 +488,11 @@ class plgAjaxZengridframework extends JPlugin
 		      							} elseif($threeletters =="rgb") {
 		      							
 		      								
-		      							} else {
+		      							} elseif($threeletters =="fad") {
+		      								$color = str_replace('fade(', 'fade(#', $color);
+		      									
+		      							}
+		      								else {
 		      								$color = '#'.$color;
 		      							}
 		      							
@@ -443,9 +503,9 @@ class plgAjaxZengridframework extends JPlugin
 		      					}		
 		      			}
 		      			
+		      			//	print_r($variable_array);
 		      			
-		      		
-		      			// Process relevant settings
+		      				// Process relevant settings
 		      			foreach ($settings as $name => $setting) {
 		      		
 		      				if($setting!=="") {
@@ -503,7 +563,7 @@ class plgAjaxZengridframework extends JPlugin
 		      		
 		      		
 		      			
-		      		
+		      
 		      		
 		      		/**
 		      		 * Main Template
@@ -513,6 +573,21 @@ class plgAjaxZengridframework extends JPlugin
 		      		
 		      		// Main Theme less File
 		      		$files[] = 'template.less';
+		      		
+		      		
+		      		/**
+	      			 * Get child theme files
+	      			 *
+	      			 *
+	      			 */
+		      					 
+		      		$child_theme = $zgf->get_files('less/child/', '.less');
+		      		
+		      		if(is_array($child_theme)) {
+			      		foreach ($child_theme as $key => $child) {
+			      			$files[] = 'child/'.$child;
+			      		}
+		      		}
 		      		
 		      		
 		      		/**
@@ -530,7 +605,7 @@ class plgAjaxZengridframework extends JPlugin
 		      			$animations = array_unique($animations);
 		      			
 		      			foreach ($animations as $key => $animation) {
-		      				if($animation !=="" && $animation !=="none") {
+		      				if($animation !=="" && $animation !=="none" && $animation !=="null") {
 		      					$files[] =  '../zengrid/libs/zengrid/less/animate/'.$animation.'.less';
 		      				}	
 		      			}
@@ -550,29 +625,7 @@ class plgAjaxZengridframework extends JPlugin
 		      				
 		      		
 		      		
-		      		/**
-		      		 * Row Styles CSS
-		      		 *
-		      		 *
-		      		 */
-		      		
-		      			if(is_array($rowstyles)) {
-		      				$rowstyles = array_filter($rowstyles);
-		      				$row_styles = TEMPLATE_PATH . '/less/styles';
-		      				$row_path = 'styles';
-		      				if(is_dir($row_styles)) {
-		      					
-		      					foreach ($rowstyles as $key => $row_file) {
-		      					
-		      						$files[] = $row_path.'/'.$row_file.'.less';
-		      							
-		      					}
-		      				}	
-		      			
-		      			}
-		      			
-		      			
-		      		
+		      		  	
 		      		/**
 		      		 * Extra Less files added
 		      		 *
@@ -606,8 +659,6 @@ class plgAjaxZengridframework extends JPlugin
 		      	        }
 		      		
 		      		
-		      		
-		      		
 		      		/**
 		      		 * Create generated template.less file to parse
 		      		 *
@@ -627,7 +678,7 @@ class plgAjaxZengridframework extends JPlugin
 		      			}
 		      		}
 		      		
-		      		print_r($files);
+		      		
 		      		file_put_contents($lessBasePath.'/template-generated.less', $files_to_compile);
 		      		
 		      		
