@@ -30,7 +30,7 @@ class plgAjaxZengridframework extends JPlugin
 			if (!$app->isAdmin()) return;
 			  
 		 	$jinput = JFactory::getApplication()->input;
-		 	$content 	= $jinput->get('content', '', 'RAW');
+		 	$content 	= $jinput->get('content', '', 'RAW');		 		
 		 	$action = $jinput->get('action', '', 'RAW');
 		 	$template = $jinput->get('template');
 		 	$target = $jinput->get('target', '', 'RAW');
@@ -43,7 +43,7 @@ class plgAjaxZengridframework extends JPlugin
 			define( 'TEMPLATE_URI', JURI::base() . '/templates/'.$template);
 			define('FRAMEWORK_PATH', TEMPLATE_PATH.'/zengrid');
 
-		 
+
 		 	return self::$action($content, $id, $target, $template, $name);	
 		}
        
@@ -57,23 +57,22 @@ class plgAjaxZengridframework extends JPlugin
 	 		
        private function save($data, $id, $target, $template, $name) {
   
-  			echo 'save - ' . $target;
 			$content = json_encode($data);
-				$content = self::indent($content);
-				
-			//	print_r($content);
+			$content = self::indent($content);
+			
+		//	print_r($content);
 			//$content = json_encode($data, JSON_PRETTY_PRINT);
 			$path = JPATH_ROOT .'/templates/'.$template.'/settings/'.$target.'/';
-				
-				if($target =="config") {
-					$name = 'config-'.$id;
-				}
-				$fileName = $path . $name . '.json';
-				
-				
-				JFile::write($fileName, $content);
-			
+       		
+       		if($target =="config") {
+       			$name = 'config-'.$id;
+       		}
+       		$fileName = $path . $name . '.json';
+       		
+       		
+       		JFile::write($fileName, $content);
        }
+       
        
        
        /**
@@ -133,7 +132,6 @@ class plgAjaxZengridframework extends JPlugin
        
            return $result;
        }
-       
        
        
        /**
@@ -211,7 +209,7 @@ class plgAjaxZengridframework extends JPlugin
     		 		$default_layout = $zgf->get_json('settings/positions.json');
     		 	}
     		 	
-    	
+    		 
     		 	foreach ($default_layout as $key => $row) { 
     		 		
     		 			
@@ -309,13 +307,6 @@ class plgAjaxZengridframework extends JPlugin
         private function compile($content, $id, $target,$template, $name) {
 	      
 		      	// Variables and Settings
-		      	
-		      	include FRAMEWORK_PATH . '/helpers/helper.php'; 
-		      		
-		      	// Instantiate $zgf
-		      	$zgf = new zen();
-		      		
-		      		
 		      	 	$variables = $content['colors'];
 		      	 	$settings = $content['settings'];
 		      	 	$extra_files = $content['files'];
@@ -327,8 +318,6 @@ class plgAjaxZengridframework extends JPlugin
 		      	 	$animate = 0;
 		      	 	$animations = "";
 		      	 	
-	
-		      	 
 		      	 	if(isset($settings['framework_version'])) {
 		      	 		$framework_version = $settings['framework_version'];
 		      	 	}
@@ -345,7 +334,6 @@ class plgAjaxZengridframework extends JPlugin
 		      	 		$enable_template_css = $settings['template_css'];
 		      	 	}
 		      	 	
-		      	 	
 		      	 	if(isset($settings['compresscss'])) {
 		      	 		$compressed = $settings['compresscss'];
 		      	 	}
@@ -359,7 +347,6 @@ class plgAjaxZengridframework extends JPlugin
 		      	 	}
 		      	 	
 		      	 	
-		      		
 		      		$theme = $settings['theme'];
 		      		$theme = strtolower(str_replace(' ', '-', $theme));
 		      		$fontawesome_type = $settings['font_awesome_type'];
@@ -406,9 +393,9 @@ class plgAjaxZengridframework extends JPlugin
 		      			}
 		      			
 		      		
-		      			      			
-		      			
-		      				
+		      		
+		      		
+		      		
 		      		
 		      		// Only parse the admin settings if not creating css
 		      		if(!$enable_template_css) {
@@ -462,7 +449,7 @@ class plgAjaxZengridframework extends JPlugin
 			      										$color = $variable[0].'(#'.$variable[1];
 			      									}
 			      								} else {
-			      									print_r($variable[0]);
+			      								//	print_r($variable[0]);
 			      								}
 		      								} else if($firstletter == "l") {
 		      									$color = "transparent";
@@ -489,12 +476,14 @@ class plgAjaxZengridframework extends JPlugin
 		      							
 		      								
 		      							} elseif($threeletters =="fad") {
-		      								$color = str_replace('fade(', 'fade(#', $color);
-		      									
-		      							}
-		      								else {
-		      								$color = '#'.$color;
-		      							}
+		      								
+		      									$color = str_replace('fade(', 'fade(#', $color);
+		      									$color = str_replace('#@', '@', $color);
+		      										
+		      								}
+		      									else {
+		      									$color = '#'.$color;
+		      								}
 		      							
 		      						
 		      							$variable_array[$param] = $color;
@@ -503,7 +492,7 @@ class plgAjaxZengridframework extends JPlugin
 		      					}		
 		      			}
 		      			
-		      			//	print_r($variable_array);
+		      		
 		      			
 		      				// Process relevant settings
 		      			foreach ($settings as $name => $setting) {
@@ -563,7 +552,7 @@ class plgAjaxZengridframework extends JPlugin
 		      		
 		      		
 		      			
-		      
+		      		
 		      		
 		      		/**
 		      		 * Main Template
@@ -573,21 +562,6 @@ class plgAjaxZengridframework extends JPlugin
 		      		
 		      		// Main Theme less File
 		      		$files[] = 'template.less';
-		      		
-		      		
-		      		/**
-	      			 * Get child theme files
-	      			 *
-	      			 *
-	      			 */
-		      					 
-		      		$child_theme = $zgf->get_files('less/child/', '.less');
-		      		
-		      		if(is_array($child_theme)) {
-			      		foreach ($child_theme as $key => $child) {
-			      			$files[] = 'child/'.$child;
-			      		}
-		      		}
 		      		
 		      		
 		      		/**
@@ -659,6 +633,8 @@ class plgAjaxZengridframework extends JPlugin
 		      	        }
 		      		
 		      		
+		      		
+		      		
 		      		/**
 		      		 * Create generated template.less file to parse
 		      		 *
@@ -678,7 +654,7 @@ class plgAjaxZengridframework extends JPlugin
 		      			}
 		      		}
 		      		
-		      		
+		      	//	print_r($files);
 		      		file_put_contents($lessBasePath.'/template-generated.less', $files_to_compile);
 		      		
 		      		
