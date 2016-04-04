@@ -618,7 +618,22 @@ class plgAjaxZengridframework extends JPlugin
 		      				
 		      			}
 		      			
+		      		
+		      		
+		      		/**
+		      			 * Child themes
+		      			 *
+		      			 *
+		      			 */
 		      			
+		      				
+		      			if(isset($child)) {
+		      				if($child !=="none") {
+		      					$files[] = '/child/'.$child.'.less';
+		      				}
+		      			}
+		      			
+		      				
 		      		
 		      		/**
 		      		 * Custom Less File
@@ -771,7 +786,7 @@ class plgAjaxZengridframework extends JPlugin
 	       	$extrafiles = $data['files'];
 	       	$settings = $data['settings'];
 	       	$extrafiles = array_filter($extrafiles);
-	       	
+
 	       
 	       	$page_type = $id;
 	       	$animations = $settings['animations'];
@@ -793,8 +808,8 @@ class plgAjaxZengridframework extends JPlugin
 	       		$files[] = $file;
 	       	}
 	       	
-	       	$assets = (array)self::getassets('../');
-	       	
+	       	$assets = self::getassets();
+	  
 	       	foreach ($assets as $key => $asset) {
 	       		$files[] = $asset;
 	       	}
@@ -803,7 +818,6 @@ class plgAjaxZengridframework extends JPlugin
 	       	if($animations) {
 	       		$files[] = '../zengrid/libs/zengrid/js/wow.min.js';
 	       	}
-	       	
 	       	
 	       	$path = TEMPLATE_PATH.'/js/';
 	       	
@@ -846,11 +860,20 @@ class plgAjaxZengridframework extends JPlugin
         *
         */
         
+      
+       
        public function getassets($path = "") {
-       		$assets = TEMPLATE_PATH.'/settings/assets.xml';
-       		$assets = simplexml_load_file($assets);
-       		$assets = $assets->js->file;
-       	return $assets;
+	       	$assets = '../templates/buildr/settings/assets.xml';
+	
+	       	$assets = simplexml_load_file($assets);
+	       	$assets = $assets->js->file;
+	       	$files = array();
+	       	
+	       	foreach($assets as $asset) {
+	       		$files[] = $asset;
+	       	}
+	      
+	       	return $files;
        }
        
   
