@@ -346,6 +346,9 @@ class plgAjaxZengridframework extends JPlugin
 		      	 		$animations = $extra_files['animations'];
 		      	 	}
 		      	 	
+		      	 	if(isset($extra_files['child'])) {
+		      	 		$child = $extra_files['child'];
+		      	 	}
 		      	 	
 		      		$theme = $settings['theme'];
 		      		$theme = strtolower(str_replace(' ', '-', $theme));
