@@ -789,7 +789,7 @@ class plgAjaxZengridframework extends JPlugin
 	       	$extrafiles = $data['files'];
 	       	$settings = $data['settings'];
 	       	$extrafiles = array_filter($extrafiles);
-
+			$child = $data['child'];
 	       
 	       	$page_type = $id;
 	       	$animations = $settings['animations'];
@@ -821,6 +821,14 @@ class plgAjaxZengridframework extends JPlugin
 	       	if($animations) {
 	       		$files[] = '../zengrid/libs/zengrid/js/wow.min.js';
 	       	}
+	       	
+	       	// Child
+	       	if(isset($child)) {
+	       		if($child !=="none" && $child !=="") {
+	       			$files[] = 'child/'.$child.'.js';
+	       		}
+	       	}
+	       		
 	       	
 	       	$path = TEMPLATE_PATH.'/js/';
 	       	
