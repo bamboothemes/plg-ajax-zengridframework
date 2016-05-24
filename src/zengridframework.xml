@@ -7,7 +7,7 @@
         <license>GNU General Public License</license>
         <authorEmail>design@joomlabamboo.com</authorEmail>
         <authorUrl>www.joomlabamboo.com</authorUrl>
-        <version>1.0</version>
+        <version>1.0.3</version>
         <description>An ajax helper plugin for the Zen Grid Framework based themes.</description>
         <files>
                 <filename plugin="zengridframework">zengridframework.php</filename>
