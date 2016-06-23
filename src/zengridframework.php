@@ -624,17 +624,19 @@ class plgAjaxZengridframework extends JPlugin
 		      		
 		      		
 		      		/**
-		      			 * Child themes
-		      			 *
-		      			 *
-		      			 */
-		      			
-		      				
-		      			if(isset($child)) {
-		      				if($child !=="none" && $child !=="") {
-		      					$files[] = '../child/'.$child.'/'.$child.'.less';
-		      				}
-		      			}
+	      			 * Child themes
+	      			 *
+	      			 *
+	      			 */
+	      			
+	      				
+	      			if(isset($child)) {
+	      				if($child !=="none" && $child !=="") {
+	      					if(file_exists(TEMPLATE_PATH.'child/'.$child.'/'.$child.'.less')) {
+	      						$files[] = '../child/'.$child.'/'.$child.'.less';
+	      					}
+	      				}
+	      			}
 		      			
 		      				
 		      		
