@@ -57,10 +57,10 @@ class plgAjaxZengridframework extends JPlugin
 	 		
        private function save($data, $id, $target, $template, $name) {
   
-			$content = json_encode($data);
+
+			$content = json_encode($data, JSON_UNESCAPED_UNICODE);
 			$content = self::indent($content);
 			
-		//	print_r($content);
 			//$content = json_encode($data, JSON_PRETTY_PRINT);
 			$path = JPATH_ROOT .'/templates/'.$template.'/settings/'.$target.'/';
        		
@@ -632,7 +632,7 @@ class plgAjaxZengridframework extends JPlugin
 		      				
 		      			if(isset($child)) {
 		      				if($child !=="none" && $child !=="") {
-		      					$files[] = '/child/'.$child.'.less';
+		      					$files[] = '../child/'.$child.'/'.$child.'.less';
 		      				}
 		      			}
 		      			
@@ -843,7 +843,7 @@ class plgAjaxZengridframework extends JPlugin
 	       	// Child
 	       	if(isset($child)) {
 	       		if($child !=="none" && $child !=="") {
-	       			$files[] = 'child/'.$child.'.js';
+	       			$files[] = '../child/'.$child.'/'.$child.'.js';
 	       		}
 	       	}
 	       		
@@ -852,9 +852,11 @@ class plgAjaxZengridframework extends JPlugin
 	       	
 	       	$buffer = "";
 	       	
-	       	foreach ($files as $key => $file) {
+	       	 foreach ($files as $key => $file) {
 	       		if($file !=="") {
-	       			$buffer .= file_get_contents($path . $file) . "\n";	
+	       			if(file_exists($path . $file)) {
+	       				$buffer .= file_get_contents($path . $file) . "\n";	
+	       			}
 	       		}
 	       	}
 	       	
