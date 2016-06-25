@@ -58,7 +58,12 @@ class plgAjaxZengridframework extends JPlugin
        private function save($data, $id, $target, $template, $name) {
   
 
-			$content = json_encode($data, JSON_UNESCAPED_UNICODE);
+			if(phpversion() > "5.4") {
+				$content = json_encode($data, JSON_UNESCAPED_UNICODE);
+			} else {
+				$content = json_encode($data);
+			}
+			
 			$content = self::indent($content);
 			
 			//$content = json_encode($data, JSON_PRETTY_PRINT);
