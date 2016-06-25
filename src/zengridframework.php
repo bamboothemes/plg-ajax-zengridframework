@@ -892,28 +892,51 @@ class plgAjaxZengridframework extends JPlugin
 	       		
        }
        
-       /**
-        * 	Gets JS files listed in the assets file
-        *	
-        *
-        */
-        
-      
-       
-       public function getassets($path = "") {
-	       	$assets = '../templates/buildr/settings/assets.xml';
-	
-	       	$assets = simplexml_load_file($assets);
-	       	$assets = $assets->js->file;
-	       	$files = array();
+      function object2array($object) { 
+			return json_decode(json_encode($object),1); 
+		} 
+				
+		
+		/**
+		 * 	Gets JS files listed in the assets file
+		 *	
+		 *
+		 */
+		 
+		public function getassets($child,$path = "") {
+			$assets = $path.TEMPLATE_PATH.'/settings/assets.xml';
+			
+			
+			$assets = simplexml_load_file($assets);
+			$assets=self::object2array($assets);
+			
+			
+			$assets = $assets['js']['file'];
 	       	
-	       	foreach($assets as $asset) {
-	       		$files[] = $asset;
-	       	}
-	      
-	       	return $files;
-       }
-       
+	       	// Theme params
+			if(isset($child)) {
+				
+				$child_assets = $path.TEMPLATE_PATH.'/child/'.$child.'/assets.xml';
+				
+				if(file_exists($child_assets)) {
+			
+					$child_assets = simplexml_load_file($child_assets);
+					$child_assets=self::object2array($child_assets);
+					$child_assets = $child_assets['js']['file'];
+					
+					if(in_array('scripts.js', $child_assets)) {
+						$key_search = array_search('scripts.js', $assets);
+						unset($assets[$key_search]);
+					}
+		
+					$assets = array_merge($assets, $child_assets);
+					$assets = array_unique($assets);
+				}
+			}
+			
+			return $assets;
+		}
+
   
 }
 
